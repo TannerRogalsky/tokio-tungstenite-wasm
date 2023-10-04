@@ -51,18 +51,21 @@ pub enum Error {
     /// Protocol violation.
     #[error("WebSocket protocol error: {0}")]
     Protocol(#[from] ProtocolError),
-    /// Message send queue full.
-    #[error("Send queue is full")]
-    SendQueueFull(crate::Message),
+    /// Message write buffer is full.
+    #[error("Write buffer is full")]
+    WriteBufferFull(crate::Message),
     /// UTF coding error.
     #[error("UTF-8 encoding error")]
     Utf8,
+    /// Attack attempt detected.
+    #[error("Attack attempt detected")]
+    AttackAttempt,
     /// Invalid URL.
     #[error("URL error: {0}")]
     Url(#[from] UrlError),
     /// HTTP error.
     #[error("HTTP error: {}", .0.status())]
-    Http(Response<Option<String>>),
+    Http(Response<Option<Vec<u8>>>),
     /// HTTP format error.
     #[error("HTTP format error: {0}")]
     HttpFormat(#[from] http::Error),

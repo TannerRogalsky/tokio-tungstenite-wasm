@@ -80,7 +80,7 @@ fn msg_conv(msg: Result<Message>) -> MsgConvFut {
                 Message::Text(inner) => Ok(crate::Message::Text(inner)),
                 Message::Binary(inner) => Ok(crate::Message::Binary(inner)),
                 Message::Close(inner) => Ok(crate::Message::Close(inner.map(Into::into))),
-                Message::Ping(_) | Message::Pong(_) => return None,
+                Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => return None,
             },
             Err(err) => Err(crate::Error::from(err)),
         };
@@ -113,7 +113,9 @@ impl From<Message> for crate::Message {
             Message::Text(inner) => crate::Message::Text(inner),
             Message::Binary(inner) => crate::Message::Binary(inner),
             Message::Close(inner) => crate::Message::Close(inner.map(Into::into)),
-            Message::Ping(_) | Message::Pong(_) => unreachable!("Unsendable via interface."),
+            Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => {
+                unreachable!("Unsendable via interface.")
+            }
         }
     }
 }
@@ -137,8 +139,9 @@ impl From<Error> for crate::Error {
             Error::Tls(inner) => crate::Error::Tls(inner.into()),
             Error::Capacity(inner) => crate::Error::Capacity(inner.into()),
             Error::Protocol(inner) => crate::Error::Protocol(inner.into()),
-            Error::SendQueueFull(inner) => crate::Error::SendQueueFull(inner.into()),
+            Error::WriteBufferFull(inner) => crate::Error::WriteBufferFull(inner.into()),
             Error::Utf8 => crate::Error::Utf8,
+            Error::AttackAttempt => crate::Error::AttackAttempt,
             Error::Url(inner) => crate::Error::Url(inner.into()),
             Error::Http(inner) => crate::Error::Http(inner),
             Error::HttpFormat(inner) => crate::Error::HttpFormat(inner),
@@ -193,6 +196,9 @@ impl From<ProtocolError> for crate::error::ProtocolError {
             ProtocolError::JunkAfterRequest => crate::error::ProtocolError::JunkAfterRequest,
             ProtocolError::CustomResponseSuccessful => {
                 crate::error::ProtocolError::CustomResponseSuccessful
+            }
+            ProtocolError::InvalidHeader(header_name) => {
+                crate::error::ProtocolError::InvalidHeader(header_name)
             }
             ProtocolError::HandshakeIncomplete => crate::error::ProtocolError::HandshakeIncomplete,
             ProtocolError::HttparseError(inner) => {
