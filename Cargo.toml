@@ -1,6 +1,6 @@
 [package]
 name = "tokio-tungstenite-wasm"
-version = "0.1.1-alpha.0"
+version = "0.2.0"
 description = "A wrapper around websys and tokio-tungstenite that makes it easy to use websockets cross-platform."
 repository = "https://github.com/TannerRogalsky/tokio-tungstenite-wasm"
 homepage = "https://github.com/TannerRogalsky/tokio-tungstenite-wasm"
