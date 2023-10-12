@@ -6,6 +6,8 @@ mod native;
 mod web;
 
 pub use error::{Error, Result};
+pub use message::coding::*;
+pub use message::CloseFrame;
 pub use message::Message;
 #[cfg(not(target_arch = "wasm32"))]
 use native as ws;
