@@ -261,19 +261,15 @@ pub enum UrlError {
 #[non_exhaustive]
 pub enum TlsError {
     /// Native TLS error.
-    #[cfg(feature = "native-tls")]
+    #[cfg(all(feature = "native-tls", not(target_arch = "wasm32")))]
     #[error("native-tls error: {0}")]
-    Native(#[from] native_tls_crate::Error),
+    Native(#[from] native_tls::Error),
     /// Rustls error.
-    #[cfg(feature = "__rustls-tls")]
+    #[cfg(all(feature = "__rustls-tls", not(target_arch = "wasm32")))]
     #[error("rustls error: {0}")]
     Rustls(#[from] rustls::Error),
-    /// Webpki error.
-    #[cfg(feature = "__rustls-tls")]
-    #[error("webpki error: {0}")]
-    Webpki(#[from] webpki::Error),
     /// DNS name resolution error.
-    #[cfg(feature = "__rustls-tls")]
+    #[cfg(all(feature = "__rustls-tls", not(target_arch = "wasm32")))]
     #[error("Invalid DNS name")]
     InvalidDnsName,
     /// Unknown
