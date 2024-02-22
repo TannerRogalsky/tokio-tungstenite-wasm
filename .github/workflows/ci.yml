@@ -33,6 +33,19 @@ jobs:
         with:
           command: check
           args: --tests
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features native-tls
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-native-roots
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-webpki-roots
+
 
   test:
     name: Test Suite
