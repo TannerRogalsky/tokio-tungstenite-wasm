@@ -4,7 +4,7 @@ name: Continuous integration
 
 jobs:
   check_minimal_versions:
-    name: Check Native
+    name: Check Minimal Versions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -32,6 +32,18 @@ jobs:
         with:
           command: check
           args: --tests
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features native-tls
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-native-roots
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-webpki-roots
 
   check_wasm:
     name: Check WASM
@@ -48,18 +60,6 @@ jobs:
         with:
           command: check
           args: --tests
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features native-tls
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features rustls-tls-native-roots
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features rustls-tls-webpki-roots
 
 
   test:

@@ -66,5 +66,5 @@ features = [
 assert-impl = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.36", features = ["full"] }
 rand = "0.8"
