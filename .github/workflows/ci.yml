@@ -3,6 +3,21 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
+  check_minimal_versions:
+    name: Check Native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --tests -Z direct-minimal-versions
+
   check_native:
     name: Check Native
     runs-on: ubuntu-latest
