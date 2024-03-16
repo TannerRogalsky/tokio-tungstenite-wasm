@@ -3,6 +3,22 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
+  # TODO: this will require a little more work to figure out
+  # check_minimal_versions:
+  #   name: Check Minimal Versions
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: nightly
+  #         override: true
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: check
+  #         args: --tests -Z direct-minimal-versions
+
   check_native:
     name: Check Native
     runs-on: ubuntu-latest
@@ -13,22 +29,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --tests
-
-  check_wasm:
-    name: Check WASM
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: wasm32-unknown-unknown
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -45,6 +45,22 @@ jobs:
         with:
           command: check
           args: --features rustls-tls-webpki-roots
+
+  check_wasm:
+    name: Check WASM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: wasm32-unknown-unknown
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --tests
 
 
   test:
