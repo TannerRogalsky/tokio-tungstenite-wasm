@@ -3,21 +3,37 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
-  # TODO: this will require a little more work to figure out
-  # check_minimal_versions:
-  #   name: Check Minimal Versions
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: actions-rs/toolchain@v1
-  #       with:
-  #         profile: minimal
-  #         toolchain: nightly
-  #         override: true
-  #     - uses: actions-rs/cargo@v1
-  #       with:
-  #         command: check
-  #         args: --tests -Z direct-minimal-versions
+  check_minimal_versions:
+    name: Check Minimal Versions
+    # Explicitly use an old version of ubuntu
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: update
+          args: -Z minimal-versions
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --tests
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features native-tls
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-native-roots
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --features rustls-tls-webpki-roots
 
   check_native:
     name: Check Native
