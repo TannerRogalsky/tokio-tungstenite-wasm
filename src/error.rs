@@ -188,6 +188,7 @@ pub enum ProtocolError {
     SecWebSocketAcceptKeyMismatch,
     /// The `Sec-WebSocket-Protocol` header was invalid
     #[error("SubProtocol error: {0}")]
+    #[allow(clippy::enum_variant_names)]
     SecWebSocketSubProtocolError(SubProtocolError),
     /// Garbage data encountered after client request.
     #[error("Junk after client request")]

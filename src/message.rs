@@ -77,6 +77,7 @@ impl Message {
     }
 
     /// Attempt to consume the WebSocket message and convert it to a String.
+    #[allow(clippy::result_large_err)]
     pub fn into_text(self) -> Result<String, crate::Error> {
         match self {
             Message::Text(string) => Ok(string),
@@ -88,6 +89,7 @@ impl Message {
 
     /// Attempt to get a &str from the WebSocket message,
     /// this will try to convert binary data to utf8.
+    #[allow(clippy::result_large_err)]
     pub fn to_text(&self) -> Result<&str, crate::Error> {
         match *self {
             Message::Text(ref string) => Ok(string),
@@ -155,7 +157,7 @@ pub struct CloseFrame<'t> {
     pub reason: std::borrow::Cow<'t, str>,
 }
 
-impl<'t> CloseFrame<'t> {
+impl CloseFrame<'_> {
     /// Convert into a owned string.
     pub fn into_owned(self) -> CloseFrame<'static> {
         CloseFrame {
@@ -165,7 +167,7 @@ impl<'t> CloseFrame<'t> {
     }
 }
 
-impl<'t> std::fmt::Display for CloseFrame<'t> {
+impl std::fmt::Display for CloseFrame<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} ({})", self.reason, self.code)
     }
