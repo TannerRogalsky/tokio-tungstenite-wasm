@@ -240,6 +240,9 @@ impl From<ProtocolError> for crate::error::ProtocolError {
             ProtocolError::InvalidCloseSequence => {
                 crate::error::ProtocolError::InvalidCloseSequence
             }
+            ProtocolError::SecWebSocketSubProtocolError(sub_protocol_error) => {
+                crate::error::ProtocolError::SecWebSocketSubProtocolError(sub_protocol_error.into())
+            }
         }
     }
 }
@@ -254,6 +257,20 @@ impl From<TlsError> for crate::error::TlsError {
             #[cfg(all(feature = "__rustls-tls", not(target_arch = "wasm32")))]
             TlsError::InvalidDnsName => crate::error::TlsError::InvalidDnsName,
             _ => crate::error::TlsError::Unknown,
+        }
+    }
+}
+
+impl From<SubProtocolError> for crate::error::SubProtocolError {
+    fn from(error: SubProtocolError) -> Self {
+        match error {
+            SubProtocolError::ServerSentSubProtocolNoneRequested => {
+                crate::error::SubProtocolError::ServerSentSubProtocolNoneRequested
+            }
+            SubProtocolError::InvalidSubProtocol => {
+                crate::error::SubProtocolError::InvalidSubProtocol
+            }
+            SubProtocolError::NoSubProtocol => crate::error::SubProtocolError::NoSubProtocol,
         }
     }
 }
