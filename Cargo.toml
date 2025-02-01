@@ -29,7 +29,7 @@ rustls-tls-webpki-roots = [
 __rustls-tls = ["dep:rustls"]
 
 [dependencies]
-thiserror = "1"
+thiserror = "2"
 http = "1"
 httparse = "1"
 futures-util = { version = "0.3", default-features = false, features = [
