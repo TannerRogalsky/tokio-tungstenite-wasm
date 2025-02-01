@@ -46,10 +46,10 @@ mod native_tests {
             .unwrap();
 
         let payload = vec![0, 1, 2];
-        let pong = tokio_tungstenite::tungstenite::Message::Pong(payload.clone());
+        let pong = tokio_tungstenite::tungstenite::Message::Pong(payload.clone().into());
         let handle: tokio::task::JoinHandle<crate::Result<_>> = tokio::spawn(async move {
             let (stream, _) = listener.accept().await?;
-            let ping = tokio_tungstenite::tungstenite::Message::Ping(payload);
+            let ping = tokio_tungstenite::tungstenite::Message::Ping(payload.into());
 
             let ws = tokio_tungstenite::accept_async(stream).await.unwrap();
             let (mut write, mut read) = ws.split();

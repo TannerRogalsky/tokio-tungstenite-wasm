@@ -77,8 +77,8 @@ fn msg_conv(msg: Result<Message>) -> MsgConvFut {
     fn inner(msg: Result<Message>) -> Option<crate::Result<crate::Message>> {
         let msg = match msg {
             Ok(msg) => match msg {
-                Message::Text(inner) => Ok(crate::Message::Text(inner)),
-                Message::Binary(inner) => Ok(crate::Message::Binary(inner)),
+                Message::Text(inner) => Ok(crate::Message::Text(inner.to_string())),
+                Message::Binary(inner) => Ok(crate::Message::Binary(inner.to_vec())),
                 Message::Close(inner) => Ok(crate::Message::Close(inner.map(Into::into))),
                 Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => return None,
             },
@@ -89,8 +89,8 @@ fn msg_conv(msg: Result<Message>) -> MsgConvFut {
     futures_util::future::ready(inner(msg))
 }
 
-impl<'a> From<CloseFrame<'a>> for crate::message::CloseFrame<'a> {
-    fn from(close_frame: CloseFrame<'a>) -> Self {
+impl From<CloseFrame> for crate::message::CloseFrame {
+    fn from(close_frame: CloseFrame) -> Self {
         crate::message::CloseFrame {
             code: u16::from(close_frame.code).into(),
             reason: close_frame.reason,
@@ -98,8 +98,8 @@ impl<'a> From<CloseFrame<'a>> for crate::message::CloseFrame<'a> {
     }
 }
 
-impl<'a> From<crate::message::CloseFrame<'a>> for CloseFrame<'a> {
-    fn from(close_frame: crate::message::CloseFrame<'a>) -> Self {
+impl From<crate::message::CloseFrame> for CloseFrame {
+    fn from(close_frame: crate::message::CloseFrame) -> Self {
         CloseFrame {
             code: u16::from(close_frame.code).into(),
             reason: close_frame.reason,
@@ -110,8 +110,8 @@ impl<'a> From<crate::message::CloseFrame<'a>> for CloseFrame<'a> {
 impl From<Message> for crate::Message {
     fn from(msg: Message) -> Self {
         match msg {
-            Message::Text(inner) => crate::Message::Text(inner),
-            Message::Binary(inner) => crate::Message::Binary(inner),
+            Message::Text(inner) => crate::Message::Text(inner.to_string()),
+            Message::Binary(inner) => crate::Message::Binary(inner.to_vec()),
             Message::Close(inner) => crate::Message::Close(inner.map(Into::into)),
             Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => {
                 unreachable!("Unsendable via interface.")
@@ -123,8 +123,8 @@ impl From<Message> for crate::Message {
 impl From<crate::Message> for Message {
     fn from(msg: crate::Message) -> Self {
         match msg {
-            crate::Message::Text(inner) => Message::Text(inner),
-            crate::Message::Binary(inner) => Message::Binary(inner),
+            crate::Message::Text(inner) => Message::Text(inner.into()),
+            crate::Message::Binary(inner) => Message::Binary(inner.into()),
             crate::Message::Close(inner) => Message::Close(inner.map(Into::into)),
         }
     }

@@ -1,3 +1,5 @@
+use tokio_tungstenite::tungstenite::Utf8Bytes;
+
 /// An enum representing the various forms of a WebSocket message.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Message {
@@ -6,7 +8,7 @@ pub enum Message {
     /// A binary WebSocket message
     Binary(Vec<u8>),
     /// A close message with the optional close frame.
-    Close(Option<CloseFrame<'static>>),
+    Close(Option<CloseFrame>),
 }
 
 impl Message {
@@ -72,7 +74,7 @@ impl Message {
             Message::Text(string) => string.into_bytes(),
             Message::Binary(data) => data,
             Message::Close(None) => Vec::new(),
-            Message::Close(Some(frame)) => frame.reason.into_owned().into_bytes(),
+            Message::Close(Some(frame)) => (*frame.reason).into(),
         }
     }
 
@@ -83,7 +85,7 @@ impl Message {
             Message::Text(string) => Ok(string),
             Message::Binary(data) => Ok(String::from_utf8(data).map_err(|err| err.utf8_error())?),
             Message::Close(None) => Ok(String::new()),
-            Message::Close(Some(frame)) => Ok(frame.reason.into_owned()),
+            Message::Close(Some(frame)) => Ok(frame.reason.to_string()),
         }
     }
 
@@ -150,24 +152,14 @@ impl std::fmt::Display for Message {
 
 /// A struct representing the close command.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct CloseFrame<'t> {
+pub struct CloseFrame {
     /// The reason as a code.
     pub code: coding::CloseCode,
     /// The reason as text string.
-    pub reason: std::borrow::Cow<'t, str>,
+    pub reason: Utf8Bytes,
 }
 
-impl CloseFrame<'_> {
-    /// Convert into a owned string.
-    pub fn into_owned(self) -> CloseFrame<'static> {
-        CloseFrame {
-            code: self.code,
-            reason: self.reason.into_owned().into(),
-        }
-    }
-}
-
-impl std::fmt::Display for CloseFrame<'_> {
+impl std::fmt::Display for CloseFrame {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} ({})", self.reason, self.code)
     }
