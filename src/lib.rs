@@ -13,7 +13,7 @@ pub use message::Message;
 use native as ws;
 #[cfg(target_arch = "wasm32")]
 use web as ws;
-pub use ws::WebSocketStream;
+pub use ws::{Bytes, Utf8Bytes, WebSocketStream};
 
 pub async fn connect<S: AsRef<str>>(url: S) -> Result<WebSocketStream> {
     ws::connect(url.as_ref()).await

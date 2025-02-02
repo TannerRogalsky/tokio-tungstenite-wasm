@@ -1,12 +1,12 @@
-use tokio_tungstenite::tungstenite::Utf8Bytes;
+use crate::{Bytes, Utf8Bytes};
 
 /// An enum representing the various forms of a WebSocket message.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Message {
     /// A text WebSocket message
-    Text(String),
+    Text(Utf8Bytes),
     /// A binary WebSocket message
-    Binary(Vec<u8>),
+    Binary(Bytes),
     /// A close message with the optional close frame.
     Close(Option<CloseFrame>),
 }
@@ -15,7 +15,7 @@ impl Message {
     /// Create a new text WebSocket message from a stringable.
     pub fn text<S>(string: S) -> Message
     where
-        S: Into<String>,
+        S: Into<Utf8Bytes>,
     {
         Message::Text(string.into())
     }
@@ -23,7 +23,7 @@ impl Message {
     /// Create a new binary WebSocket message by converting to Vec<u8>.
     pub fn binary<B>(bin: B) -> Message
     where
-        B: Into<Vec<u8>>,
+        B: Into<Bytes>,
     {
         Message::Binary(bin.into())
     }
@@ -69,23 +69,23 @@ impl Message {
     }
 
     /// Consume the WebSocket and return it as binary data.
-    pub fn into_data(self) -> Vec<u8> {
+    pub fn into_data(self) -> Bytes {
         match self {
-            Message::Text(string) => string.into_bytes(),
+            Message::Text(string) => string.into(),
             Message::Binary(data) => data,
-            Message::Close(None) => Vec::new(),
-            Message::Close(Some(frame)) => (*frame.reason).into(),
+            Message::Close(None) => Bytes::new(),
+            Message::Close(Some(frame)) => frame.reason.into(),
         }
     }
 
     /// Attempt to consume the WebSocket message and convert it to a String.
     #[allow(clippy::result_large_err)]
-    pub fn into_text(self) -> Result<String, crate::Error> {
+    pub fn into_text(self) -> Result<Utf8Bytes, crate::Error> {
         match self {
             Message::Text(string) => Ok(string),
-            Message::Binary(data) => Ok(String::from_utf8(data).map_err(|err| err.utf8_error())?),
-            Message::Close(None) => Ok(String::new()),
-            Message::Close(Some(frame)) => Ok(frame.reason.to_string()),
+            Message::Binary(data) => Utf8Bytes::try_from(data).map_err(Into::into),
+            Message::Close(None) => Ok(<_>::default()),
+            Message::Close(Some(frame)) => Ok(frame.reason),
         }
     }
 
@@ -116,7 +116,7 @@ impl<'s> From<&'s str> for Message {
 
 impl<'b> From<&'b [u8]> for Message {
     fn from(data: &'b [u8]) -> Self {
-        Message::binary(data)
+        Message::binary(Bytes::copy_from_slice(data))
     }
 }
 
@@ -126,13 +126,13 @@ impl From<Vec<u8>> for Message {
     }
 }
 
-impl From<Message> for Vec<u8> {
+impl From<Message> for Bytes {
     fn from(message: Message) -> Self {
         message.into_data()
     }
 }
 
-impl std::convert::TryFrom<Message> for String {
+impl std::convert::TryFrom<Message> for Utf8Bytes {
     type Error = crate::Error;
 
     fn try_from(value: Message) -> std::result::Result<Self, Self::Error> {

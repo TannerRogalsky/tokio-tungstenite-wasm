@@ -1,6 +1,7 @@
 use futures_util::{Sink, Stream, StreamExt};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+pub use tokio_tungstenite::tungstenite::{Bytes, Utf8Bytes};
 use tokio_tungstenite::{
     self as tg,
     tungstenite::{
@@ -77,8 +78,8 @@ fn msg_conv(msg: Result<Message>) -> MsgConvFut {
     fn inner(msg: Result<Message>) -> Option<crate::Result<crate::Message>> {
         let msg = match msg {
             Ok(msg) => match msg {
-                Message::Text(inner) => Ok(crate::Message::Text(inner.to_string())),
-                Message::Binary(inner) => Ok(crate::Message::Binary(inner.to_vec())),
+                Message::Text(inner) => Ok(crate::Message::Text(inner)),
+                Message::Binary(inner) => Ok(crate::Message::Binary(inner)),
                 Message::Close(inner) => Ok(crate::Message::Close(inner.map(Into::into))),
                 Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => return None,
             },
@@ -110,8 +111,8 @@ impl From<crate::message::CloseFrame> for CloseFrame {
 impl From<Message> for crate::Message {
     fn from(msg: Message) -> Self {
         match msg {
-            Message::Text(inner) => crate::Message::Text(inner.to_string()),
-            Message::Binary(inner) => crate::Message::Binary(inner.to_vec()),
+            Message::Text(inner) => crate::Message::Text(inner),
+            Message::Binary(inner) => crate::Message::Binary(inner),
             Message::Close(inner) => crate::Message::Close(inner.map(Into::into)),
             Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => {
                 unreachable!("Unsendable via interface.")
@@ -123,8 +124,8 @@ impl From<Message> for crate::Message {
 impl From<crate::Message> for Message {
     fn from(msg: crate::Message) -> Self {
         match msg {
-            crate::Message::Text(inner) => Message::Text(inner.into()),
-            crate::Message::Binary(inner) => Message::Binary(inner.into()),
+            crate::Message::Text(inner) => Message::Text(inner),
+            crate::Message::Binary(inner) => Message::Binary(inner),
             crate::Message::Close(inner) => Message::Close(inner.map(Into::into)),
         }
     }
