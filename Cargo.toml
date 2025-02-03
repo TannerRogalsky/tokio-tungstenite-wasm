@@ -29,7 +29,7 @@ rustls-tls-webpki-roots = [
 __rustls-tls = ["dep:rustls"]
 
 [dependencies]
-thiserror = "1"
+thiserror = "2"
 http = "1"
 httparse = "1"
 futures-util = { version = "0.3", default-features = false, features = [
@@ -39,13 +39,14 @@ futures-util = { version = "0.3", default-features = false, features = [
 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio-tungstenite = "0.24"
+tokio-tungstenite = "0.26"
 tokio = { version = "1", default-features = false, features = ["net"] }
 native-tls = { version = "0.2", default-features = false, optional = true }
 rustls = { version = "0.23", default-features = false, optional = true }
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+bytes = "1"
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 futures-channel = { version = "0.3" }

@@ -1,6 +1,7 @@
 use futures_util::{Sink, Stream, StreamExt};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+pub use tokio_tungstenite::tungstenite::{Bytes, Utf8Bytes};
 use tokio_tungstenite::{
     self as tg,
     tungstenite::{
@@ -89,8 +90,8 @@ fn msg_conv(msg: Result<Message>) -> MsgConvFut {
     futures_util::future::ready(inner(msg))
 }
 
-impl<'a> From<CloseFrame<'a>> for crate::message::CloseFrame<'a> {
-    fn from(close_frame: CloseFrame<'a>) -> Self {
+impl From<CloseFrame> for crate::message::CloseFrame {
+    fn from(close_frame: CloseFrame) -> Self {
         crate::message::CloseFrame {
             code: u16::from(close_frame.code).into(),
             reason: close_frame.reason,
@@ -98,8 +99,8 @@ impl<'a> From<CloseFrame<'a>> for crate::message::CloseFrame<'a> {
     }
 }
 
-impl<'a> From<crate::message::CloseFrame<'a>> for CloseFrame<'a> {
-    fn from(close_frame: crate::message::CloseFrame<'a>) -> Self {
+impl From<crate::message::CloseFrame> for CloseFrame {
+    fn from(close_frame: crate::message::CloseFrame) -> Self {
         CloseFrame {
             code: u16::from(close_frame.code).into(),
             reason: close_frame.reason,
