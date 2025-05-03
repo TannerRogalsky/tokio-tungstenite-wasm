@@ -8,6 +8,16 @@ jobs:
     # Explicitly use an old version of ubuntu
     runs-on: ubuntu-22.04
     steps:
+      - name: Download OpenSSL packages
+        run: |
+          wget http://launchpadlibrarian.net/774729480/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
+          wget http://launchpadlibrarian.net/774729475/libssl-dev_1.1.1f-1ubuntu2.24_amd64.deb
+          wget http://launchpadlibrarian.net/774729481/openssl_1.1.1f-1ubuntu2.24_amd64.deb
+      - name: Install OpenSSL packages
+        run: |
+          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
+          sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2.24_amd64.deb
+          sudo dpkg -i --force-confnew openssl_1.1.1f-1ubuntu2.24_amd64.deb
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
