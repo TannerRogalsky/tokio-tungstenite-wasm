@@ -18,6 +18,22 @@ pub async fn connect(url: &str) -> crate::Result<WebSocketStream> {
     Ok(WebSocketStream { inner })
 }
 
+pub async fn connect_with_protocols(
+    url: &str,
+    protocols: &[&str],
+) -> crate::Result<WebSocketStream> {
+    let mut req = tg::tungstenite::client::IntoClientRequest::into_client_request(url)?;
+    // Can be added as protocol values in multiple headers,
+    // or as comma separate values added to a single header
+    req.headers_mut().insert(
+        http::header::SEC_WEBSOCKET_PROTOCOL,
+        http::HeaderValue::from_str(&protocols.join(", "))?,
+    );
+    let (inner, _response) = tg::connect_async(req).await?;
+    let inner = inner.filter_map(msg_conv as fn(_) -> _);
+    Ok(WebSocketStream { inner })
+}
+
 type Ws = tg::WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
 type MsgConvFut = futures_util::future::Ready<Option<crate::Result<crate::Message>>>;
 pub struct WebSocketStream {

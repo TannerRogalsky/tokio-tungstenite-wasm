@@ -8,6 +8,13 @@ pub async fn connect(url: &str) -> crate::Result<WebSocketStream> {
     WebSocketStream::new(url).await
 }
 
+pub async fn connect_with_protocols(
+    url: &str,
+    protocols: &[&str],
+) -> crate::Result<WebSocketStream> {
+    WebSocketStream::new_with_protocols(url, protocols).await
+}
+
 pub struct WebSocketStream {
     inner: WebSocket,
     queue: Rc<RefCell<VecDeque<crate::Result<crate::Message>>>>,
@@ -18,98 +25,109 @@ pub struct WebSocketStream {
 }
 
 impl WebSocketStream {
+    async fn new_with_protocols(url: &str, protocols: &[&str]) -> crate::Result<Self> {
+        // Can be added as protocol values in multiple headers,
+        // or as comma separate values added to a single header
+        match web_sys::WebSocket::new_with_str(url, &protocols.join(", ")) {
+            Err(_err) => Err(crate::Error::Url(
+                crate::error::UrlError::UnsupportedUrlScheme,
+            )),
+            Ok(ws) => Ok(Self::register_callbacks(ws).await?),
+        }
+    }
+
     async fn new(url: &str) -> crate::Result<Self> {
         match web_sys::WebSocket::new(url) {
             Err(_err) => Err(crate::Error::Url(
                 crate::error::UrlError::UnsupportedUrlScheme,
             )),
-            Ok(ws) => {
-                ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
-
-                let (open_sx, open_rx) = futures_channel::oneshot::channel();
-                let on_open_callback = {
-                    let mut open_sx = Some(open_sx);
-                    Closure::wrap(Box::new(move |_event| {
-                        open_sx.take().map(|open_sx| open_sx.send(()));
-                    }) as Box<dyn FnMut(web_sys::Event)>)
-                };
-                ws.set_onopen(Some(on_open_callback.as_ref().unchecked_ref()));
-
-                let (err_sx, err_rx) = futures_channel::oneshot::channel();
-                let on_error_callback = {
-                    let mut err_sx = Some(err_sx);
-                    Closure::wrap(Box::new(move |_error_event| {
-                        err_sx.take().map(|err_sx| err_sx.send(()));
-                    }) as Box<dyn FnMut(ErrorEvent)>)
-                };
-                ws.set_onerror(Some(on_error_callback.as_ref().unchecked_ref()));
-
-                let result = futures_util::future::select(open_rx, err_rx).await;
-                ws.set_onopen(None);
-                ws.set_onerror(None);
-                let ws = match result {
-                    futures_util::future::Either::Left((_, _)) => Ok(ws),
-                    futures_util::future::Either::Right((_, _)) => {
-                        Err(crate::Error::ConnectionClosed)
-                    }
-                }?;
-
-                let waker = Rc::new(RefCell::new(Option::<Waker>::None));
-                let queue = Rc::new(RefCell::new(VecDeque::new()));
-                let on_message_callback = {
-                    let waker = Rc::clone(&waker);
-                    let queue = Rc::clone(&queue);
-                    Closure::wrap(Box::new(move |event: MessageEvent| {
-                        let payload = std::convert::TryFrom::try_from(event);
-                        queue.borrow_mut().push_back(payload);
-                        if let Some(waker) = waker.borrow_mut().take() {
-                            waker.wake();
-                        }
-                    }) as Box<dyn FnMut(MessageEvent)>)
-                };
-                ws.set_onmessage(Some(on_message_callback.as_ref().unchecked_ref()));
-
-                let on_error_callback = {
-                    let waker = Rc::clone(&waker);
-                    let queue = Rc::clone(&queue);
-                    Closure::wrap(Box::new(move |_error_event| {
-                        queue
-                            .borrow_mut()
-                            .push_back(Err(crate::Error::ConnectionClosed));
-                        if let Some(waker) = waker.borrow_mut().take() {
-                            waker.wake();
-                        }
-                    }) as Box<dyn FnMut(ErrorEvent)>)
-                };
-                ws.set_onerror(Some(on_error_callback.as_ref().unchecked_ref()));
-
-                let on_close_callback = {
-                    let waker = Rc::clone(&waker);
-                    let queue = Rc::clone(&queue);
-                    Closure::wrap(Box::new(move |event: CloseEvent| {
-                        queue.borrow_mut().push_back(Ok(crate::Message::Close(Some(
-                            crate::message::CloseFrame {
-                                code: event.code().into(),
-                                reason: event.reason().into(),
-                            },
-                        ))));
-                        if let Some(waker) = waker.borrow_mut().take() {
-                            waker.wake();
-                        }
-                    }) as Box<dyn FnMut(CloseEvent)>)
-                };
-                ws.set_onclose(Some(on_close_callback.as_ref().unchecked_ref()));
-
-                Ok(Self {
-                    inner: ws,
-                    queue,
-                    waker,
-                    _on_message_callback: on_message_callback,
-                    _on_error_callback: on_error_callback,
-                    _on_close_callback: on_close_callback,
-                })
-            }
+            Ok(ws) => Ok(Self::register_callbacks(ws).await?),
         }
+    }
+
+    async fn register_callbacks(ws: WebSocket) -> crate::Result<Self> {
+        ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
+
+        let (open_sx, open_rx) = futures_channel::oneshot::channel();
+        let on_open_callback = {
+            let mut open_sx = Some(open_sx);
+            Closure::wrap(Box::new(move |_event| {
+                open_sx.take().map(|open_sx| open_sx.send(()));
+            }) as Box<dyn FnMut(web_sys::Event)>)
+        };
+        ws.set_onopen(Some(on_open_callback.as_ref().unchecked_ref()));
+
+        let (err_sx, err_rx) = futures_channel::oneshot::channel();
+        let on_error_callback = {
+            let mut err_sx = Some(err_sx);
+            Closure::wrap(Box::new(move |_error_event| {
+                err_sx.take().map(|err_sx| err_sx.send(()));
+            }) as Box<dyn FnMut(ErrorEvent)>)
+        };
+        ws.set_onerror(Some(on_error_callback.as_ref().unchecked_ref()));
+
+        let result = futures_util::future::select(open_rx, err_rx).await;
+        ws.set_onopen(None);
+        ws.set_onerror(None);
+        let ws = match result {
+            futures_util::future::Either::Left((_, _)) => Ok(ws),
+            futures_util::future::Either::Right((_, _)) => Err(crate::Error::ConnectionClosed),
+        }?;
+
+        let waker = Rc::new(RefCell::new(Option::<Waker>::None));
+        let queue = Rc::new(RefCell::new(VecDeque::new()));
+        let on_message_callback = {
+            let waker = Rc::clone(&waker);
+            let queue = Rc::clone(&queue);
+            Closure::wrap(Box::new(move |event: MessageEvent| {
+                let payload = std::convert::TryFrom::try_from(event);
+                queue.borrow_mut().push_back(payload);
+                if let Some(waker) = waker.borrow_mut().take() {
+                    waker.wake();
+                }
+            }) as Box<dyn FnMut(MessageEvent)>)
+        };
+        ws.set_onmessage(Some(on_message_callback.as_ref().unchecked_ref()));
+
+        let on_error_callback = {
+            let waker = Rc::clone(&waker);
+            let queue = Rc::clone(&queue);
+            Closure::wrap(Box::new(move |_error_event| {
+                queue
+                    .borrow_mut()
+                    .push_back(Err(crate::Error::ConnectionClosed));
+                if let Some(waker) = waker.borrow_mut().take() {
+                    waker.wake();
+                }
+            }) as Box<dyn FnMut(ErrorEvent)>)
+        };
+        ws.set_onerror(Some(on_error_callback.as_ref().unchecked_ref()));
+
+        let on_close_callback = {
+            let waker = Rc::clone(&waker);
+            let queue = Rc::clone(&queue);
+            Closure::wrap(Box::new(move |event: CloseEvent| {
+                queue.borrow_mut().push_back(Ok(crate::Message::Close(Some(
+                    crate::message::CloseFrame {
+                        code: event.code().into(),
+                        reason: event.reason().into(),
+                    },
+                ))));
+                if let Some(waker) = waker.borrow_mut().take() {
+                    waker.wake();
+                }
+            }) as Box<dyn FnMut(CloseEvent)>)
+        };
+        ws.set_onclose(Some(on_close_callback.as_ref().unchecked_ref()));
+
+        Ok(Self {
+            inner: ws,
+            queue,
+            waker,
+            _on_message_callback: on_message_callback,
+            _on_error_callback: on_error_callback,
+            _on_close_callback: on_close_callback,
+        })
     }
 }
 

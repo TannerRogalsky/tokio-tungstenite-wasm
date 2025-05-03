@@ -19,6 +19,13 @@ pub async fn connect<S: AsRef<str>>(url: S) -> Result<WebSocketStream> {
     ws::connect(url.as_ref()).await
 }
 
+pub async fn connect_with_protocols<S: AsRef<str>>(
+    url: S,
+    protocols: &[&str],
+) -> Result<WebSocketStream> {
+    ws::connect_with_protocols(url.as_ref(), protocols).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
