@@ -20,7 +20,7 @@ impl Message {
         Message::Text(string.into())
     }
 
-    /// Create a new binary WebSocket message by converting to Vec<u8>.
+    /// Create a new binary WebSocket message by converting to `Vec<u8>`.
     pub fn binary<B>(bin: B) -> Message
     where
         B: Into<Bytes>,
@@ -143,7 +143,7 @@ impl std::convert::TryFrom<Message> for Utf8Bytes {
 impl std::fmt::Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
         if let Ok(string) = self.to_text() {
-            write!(f, "{}", string)
+            write!(f, "{string}")
         } else {
             write!(f, "Binary Data<length={}>", self.len())
         }
@@ -251,7 +251,7 @@ pub mod coding {
     impl std::fmt::Display for CloseCode {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             let code: u16 = self.into();
-            write!(f, "{}", code)
+            write!(f, "{code}")
         }
     }
 
