@@ -317,7 +317,7 @@ impl std::fmt::Display for Data {
             Data::Continue => write!(f, "CONTINUE"),
             Data::Text => write!(f, "TEXT"),
             Data::Binary => write!(f, "BINARY"),
-            Data::Reserved(x) => write!(f, "RESERVED_DATA_{}", x),
+            Data::Reserved(x) => write!(f, "RESERVED_DATA_{x}"),
         }
     }
 }
