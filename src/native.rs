@@ -156,8 +156,10 @@ impl From<Error> for crate::Error {
             Error::Tls(inner) => crate::Error::Tls(inner.into()),
             Error::Capacity(inner) => crate::Error::Capacity(inner.into()),
             Error::Protocol(inner) => crate::Error::Protocol(inner.into()),
-            Error::WriteBufferFull(inner) => crate::Error::WriteBufferFull(inner.into()),
-            Error::Utf8 => crate::Error::Utf8,
+            Error::WriteBufferFull(inner) => {
+                crate::Error::WriteBufferFull(Box::new((*inner).into()))
+            }
+            Error::Utf8(inner) => crate::Error::Utf8(inner),
             Error::AttackAttempt => crate::Error::AttackAttempt,
             Error::Url(inner) => crate::Error::Url(inner.into()),
             Error::Http(inner) => crate::Error::Http(inner),

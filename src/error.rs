@@ -53,10 +53,10 @@ pub enum Error {
     Protocol(#[from] ProtocolError),
     /// Message write buffer is full.
     #[error("Write buffer is full")]
-    WriteBufferFull(crate::Message),
+    WriteBufferFull(Box<crate::Message>),
     /// UTF coding error.
     #[error("UTF-8 encoding error")]
-    Utf8,
+    Utf8(String),
     /// Attack attempt detected.
     #[error("Attack attempt detected")]
     AttackAttempt,
@@ -65,7 +65,7 @@ pub enum Error {
     Url(#[from] UrlError),
     /// HTTP error.
     #[error("HTTP error: {}", .0.status())]
-    Http(Response<Option<Vec<u8>>>),
+    Http(Box<Response<Option<Vec<u8>>>>),
     /// HTTP format error.
     #[error("HTTP format error: {0}")]
     HttpFormat(#[from] http::Error),
@@ -78,14 +78,14 @@ pub enum Error {
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(_: str::Utf8Error) -> Self {
-        Error::Utf8
+    fn from(err: str::Utf8Error) -> Self {
+        Error::Utf8(err.to_string())
     }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(_: string::FromUtf8Error) -> Self {
-        Error::Utf8
+    fn from(err: string::FromUtf8Error) -> Self {
+        Error::Utf8(err.to_string())
     }
 }
 
@@ -102,8 +102,8 @@ impl From<http::header::InvalidHeaderName> for Error {
 }
 
 impl From<http::header::ToStrError> for Error {
-    fn from(_: http::header::ToStrError) -> Self {
-        Error::Utf8
+    fn from(err: http::header::ToStrError) -> Self {
+        Error::Utf8(err.to_string())
     }
 }
 
@@ -199,7 +199,7 @@ pub enum ProtocolError {
     /// Invalid header is passed. This header is formed by the library automatically
     /// and must not be overwritten by the user.
     #[error("Not allowed to pass overwrite the standard header {0}")]
-    InvalidHeader(HeaderName),
+    InvalidHeader(Box<HeaderName>),
     /// No more data while still performing handshake.
     #[error("Handshake not finished")]
     HandshakeIncomplete,
@@ -284,11 +284,11 @@ pub enum TlsError {
     /// Native TLS error.
     #[cfg(all(feature = "native-tls", not(target_arch = "wasm32")))]
     #[error("native-tls error: {0}")]
-    Native(#[from] native_tls::Error),
+    Native(#[from] Box<native_tls::Error>),
     /// Rustls error.
     #[cfg(all(feature = "__rustls-tls", not(target_arch = "wasm32")))]
     #[error("rustls error: {0}")]
-    Rustls(#[from] rustls::Error),
+    Rustls(#[from] Box<rustls::Error>),
     /// DNS name resolution error.
     #[cfg(all(feature = "__rustls-tls", not(target_arch = "wasm32")))]
     #[error("Invalid DNS name")]
