@@ -15,6 +15,13 @@ categories = [
 ]
 keywords = ["websocket", "cross-platform", "wasm", "tokio"]
 
+[package.metadata.docs.rs]
+all-features = true
+additional-targets = ["wasm32-unknown-unknown"]
+
+[lints.rust]
+unsafe_code = "forbid"
+
 [features]
 native-tls = ["tokio-tungstenite/native-tls", "dep:native-tls"]
 native-tls-vendored = ["native-tls", "tokio-tungstenite/native-tls-vendored"]
