@@ -26,6 +26,14 @@ pub async fn connect_with_protocols<S: AsRef<str>>(
     ws::connect_with_protocols(url.as_ref(), protocols).await
 }
 
+#[cfg(any(feature = "native-tls", feature = "__rustls-tls"))]
+#[cfg(not(target_arch = "wasm32"))]
+pub use ws::connect_custom_tls;
+
+#[cfg(any(feature = "native-tls", feature = "__rustls-tls"))]
+#[cfg(not(target_arch = "wasm32"))]
+pub use ws::Connector;
+
 #[cfg(test)]
 mod tests {
     use super::*;
