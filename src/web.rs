@@ -285,6 +285,7 @@ mod utf8_bytes {
 
         /// Returns as a string slice.
         #[inline]
+        #[allow(unsafe_code)]
         pub fn as_str(&self) -> &str {
             // SAFETY: is valid uft8
             unsafe { str::from_utf8_unchecked(&self.0) }
