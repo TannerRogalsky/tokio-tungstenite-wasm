@@ -203,11 +203,11 @@ mod stream {
                         crate::Message::Text(text) => self
                             .inner
                             .send_with_str(&text)
-                            .map_err(|_| crate::Error::Utf8)?,
+                            .map_err(|_| crate::Error::Sending)?,
                         crate::Message::Binary(bin) => self
                             .inner
                             .send_with_u8_array(&bin)
-                            .map_err(|_| crate::Error::Utf8)?,
+                            .map_err(|_| crate::Error::Sending)?,
                         crate::Message::Close(frame) => match frame {
                             None => self
                                 .inner
@@ -257,7 +257,7 @@ impl std::convert::TryFrom<web_sys::MessageEvent> for crate::Message {
             }
             payload if payload.is_string() => match payload.as_string() {
                 Some(text) => Ok(crate::Message::text(text)),
-                None => Err(crate::Error::Utf8),
+                None => Err(crate::Error::UnknownFormat),
             },
             payload if payload.is_instance_of::<web_sys::Blob>() => {
                 Err(crate::Error::BlobFormatUnsupported)

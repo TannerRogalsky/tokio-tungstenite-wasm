@@ -57,6 +57,9 @@ pub enum Error {
     /// UTF coding error.
     #[error("UTF-8 encoding error")]
     Utf8(String),
+    /// Sending error
+    #[error("Sending error")]
+    Sending,
     /// Attack attempt detected.
     #[error("Attack attempt detected")]
     AttackAttempt,
