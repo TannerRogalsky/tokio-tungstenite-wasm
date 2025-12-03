@@ -13,7 +13,7 @@ async fn main() {
     let msg = receiver.next().await.unwrap().unwrap();
     assert!(msg.into_text().unwrap().starts_with("Request served by"));
 
-    println!("Recieved initial connection message.");
+    println!("Received initial connection message.");
 
     let payload = "This is a test message.";
     sender

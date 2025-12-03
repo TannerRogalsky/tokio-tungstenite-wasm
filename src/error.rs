@@ -155,7 +155,7 @@ pub enum SubProtocolError {
     #[error("Server sent a subprotocol but none was requested")]
     ServerSentSubProtocolNoneRequested,
 
-    /// The server sent an invalid subprotocol to a client handhshake request
+    /// The server sent an invalid subprotocol to a client handshake request
     #[error("Server sent an invalid subprotocol")]
     InvalidSubProtocol,
 
