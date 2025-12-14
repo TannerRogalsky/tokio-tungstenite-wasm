@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 pub mod error;
 mod message;
 #[cfg(not(target_arch = "wasm32"))]

@@ -1,3 +1,7 @@
+# Rust stuff
 /target
 Cargo.lock
+
+# Dev stuff
 /.idea
+/.vscode

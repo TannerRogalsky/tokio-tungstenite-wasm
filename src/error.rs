@@ -57,6 +57,9 @@ pub enum Error {
     /// UTF coding error.
     #[error("UTF-8 encoding error")]
     Utf8(String),
+    /// Failed to send message
+    #[error("Failed to send message")]
+    Sending,
     /// Attack attempt detected.
     #[error("Attack attempt detected")]
     AttackAttempt,
@@ -152,7 +155,7 @@ pub enum SubProtocolError {
     #[error("Server sent a subprotocol but none was requested")]
     ServerSentSubProtocolNoneRequested,
 
-    /// The server sent an invalid subprotocol to a client handhshake request
+    /// The server sent an invalid subprotocol to a client handshake request
     #[error("Server sent an invalid subprotocol")]
     InvalidSubProtocol,
 
