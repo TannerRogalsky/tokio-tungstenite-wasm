@@ -83,7 +83,7 @@ impl Message {
     pub fn into_text(self) -> Result<Utf8Bytes, crate::Error> {
         match self {
             Message::Text(string) => Ok(string),
-            Message::Binary(data) => Utf8Bytes::try_from(data).map_err(Into::into),
+            Message::Binary(data) => std::convert::TryFrom::try_from(data).map_err(Into::into),
             Message::Close(None) => Ok(<_>::default()),
             Message::Close(Some(frame)) => Ok(frame.reason),
         }
