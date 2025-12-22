@@ -6,7 +6,8 @@ repository = "https://github.com/TannerRogalsky/tokio-tungstenite-wasm"
 homepage = "https://github.com/TannerRogalsky/tokio-tungstenite-wasm"
 license-file = "LICENSE"
 readme = "README.md"
-edition = "2021"
+edition = "2018"
+rust-version = "1.63"
 categories = [
     "wasm",
     "web-programming::websocket",
