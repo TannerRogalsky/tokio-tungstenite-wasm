@@ -2,6 +2,8 @@ use futures_util::{Sink, Stream, StreamExt};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 pub use tokio_tungstenite::tungstenite::{Bytes, Utf8Bytes};
+#[cfg(any(feature = "native-tls", feature = "__rustls-tls"))]
+pub use tokio_tungstenite::Connector;
 use tokio_tungstenite::{
     self as tg,
     tungstenite::{
@@ -30,6 +32,16 @@ pub async fn connect_with_protocols(
         http::HeaderValue::from_str(&protocols.join(", "))?,
     );
     let (inner, _response) = tg::connect_async(req).await?;
+    let inner = inner.filter_map(msg_conv as fn(_) -> _);
+    Ok(WebSocketStream { inner })
+}
+
+#[cfg(any(feature = "native-tls", feature = "__rustls-tls"))]
+pub async fn connect_custom_tls(
+    url: &str,
+    connector: Option<Connector>,
+) -> crate::Result<WebSocketStream> {
+    let (inner, _response) = tg::connect_async_tls_with_config(url, None, false, connector).await?;
     let inner = inner.filter_map(msg_conv as fn(_) -> _);
     Ok(WebSocketStream { inner })
 }

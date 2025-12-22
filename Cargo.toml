@@ -72,4 +72,4 @@ assert-impl = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1", features = ["full"] }
-rand = "0.8"
+rand = "0.9"
