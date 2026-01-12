@@ -163,7 +163,6 @@ impl std::convert::TryFrom<u16> for ReadyState {
 
 mod stream {
     use super::ReadyState;
-    use std::convert::TryInto;
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
@@ -206,8 +205,9 @@ mod stream {
                             .send_with_str(&text)
                             .map_err(|_| crate::Error::Sending)?,
                         crate::Message::Binary(bin) => {
-                            // #[cfg(target_feature = "atomics")]
+                            #[cfg(target_feature = "atomics")]
                             {
+                                use std::convert::TryInto;
                                 // When atomics are enabled, WASM memory is backed by SharedArrayBuffer
                                 // Copy to a regular Uint8Array to avoid WebSocket compatibility issues
                                 let len = bin.len()
