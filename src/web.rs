@@ -210,9 +210,8 @@ mod stream {
                                 use std::convert::TryInto;
                                 // When atomics are enabled, WASM memory is backed by SharedArrayBuffer
                                 // Copy to a regular Uint8Array to avoid WebSocket compatibility issues
-                                let len = bin.len()
-                                    .try_into()
-                                    .map_err(|_| crate::Error::Sending)?;
+                                let len =
+                                    bin.len().try_into().map_err(|_| crate::Error::Sending)?;
 
                                 let array = js_sys::Uint8Array::new_with_length(len);
                                 array.copy_from(&bin);
@@ -290,7 +289,10 @@ impl std::convert::TryFrom<web_sys::MessageEvent> for crate::Message {
 mod utf8_bytes {
     use bytes::{Bytes, BytesMut};
     use core::str;
-    use std::{convert::{TryFrom, TryInto}, fmt::Display};
+    use std::{
+        convert::{TryFrom, TryInto},
+        fmt::Display,
+    };
 
     /// Utf8 payload.
     #[derive(Debug, Default, Clone, Eq, PartialEq)]
