@@ -204,10 +204,29 @@ mod stream {
                             .inner
                             .send_with_str(&text)
                             .map_err(|_| crate::Error::Sending)?,
-                        crate::Message::Binary(bin) => self
-                            .inner
-                            .send_with_u8_array(&bin)
-                            .map_err(|_| crate::Error::Sending)?,
+                        crate::Message::Binary(bin) => {
+                            #[cfg(target_feature = "atomics")]
+                            {
+                                use std::convert::TryInto;
+                                // When atomics are enabled, WASM memory is backed by SharedArrayBuffer
+                                // Copy to a regular Uint8Array to avoid WebSocket compatibility issues
+                                let len =
+                                    bin.len().try_into().map_err(|_| crate::Error::Sending)?;
+
+                                let array = js_sys::Uint8Array::new_with_length(len);
+                                array.copy_from(&bin);
+                                self.inner
+                                    .send_with_js_u8_array(&array)
+                                    .map_err(|_| crate::Error::Sending)?
+                            }
+                            #[cfg(not(target_feature = "atomics"))]
+                            {
+                                // Direct send is safe with regular ArrayBuffer
+                                self.inner
+                                    .send_with_u8_array(&bin)
+                                    .map_err(|_| crate::Error::Sending)?
+                            }
+                        }
                         crate::Message::Close(frame) => match frame {
                             None => self
                                 .inner
@@ -270,7 +289,10 @@ impl std::convert::TryFrom<web_sys::MessageEvent> for crate::Message {
 mod utf8_bytes {
     use bytes::{Bytes, BytesMut};
     use core::str;
-    use std::fmt::Display;
+    use std::{
+        convert::{TryFrom, TryInto},
+        fmt::Display,
+    };
 
     /// Utf8 payload.
     #[derive(Debug, Default, Clone, Eq, PartialEq)]
