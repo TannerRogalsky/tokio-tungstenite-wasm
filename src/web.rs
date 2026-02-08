@@ -66,14 +66,6 @@ impl WebSocketStream {
         };
         ws.set_onerror(Some(on_error_callback.as_ref().unchecked_ref()));
 
-        let result = futures_util::future::select(open_rx, err_rx).await;
-        ws.set_onopen(None);
-        ws.set_onerror(None);
-        let ws = match result {
-            futures_util::future::Either::Left((_, _)) => Ok(ws),
-            futures_util::future::Either::Right((_, _)) => Err(crate::Error::ConnectionClosed),
-        }?;
-
         let waker = Rc::new(RefCell::new(Option::<Waker>::None));
         let queue = Rc::new(RefCell::new(VecDeque::new()));
         let on_message_callback = {
@@ -88,6 +80,14 @@ impl WebSocketStream {
             }) as Box<dyn FnMut(MessageEvent)>)
         };
         ws.set_onmessage(Some(on_message_callback.as_ref().unchecked_ref()));
+
+        let result = futures_util::future::select(open_rx, err_rx).await;
+        ws.set_onopen(None);
+        ws.set_onerror(None);
+        let ws = match result {
+            futures_util::future::Either::Left((_, _)) => Ok(ws),
+            futures_util::future::Either::Right((_, _)) => Err(crate::Error::ConnectionClosed),
+        }?;
 
         let on_error_callback = {
             let waker = Rc::clone(&waker);
